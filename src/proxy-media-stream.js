@@ -79,8 +79,8 @@ class ProxyMediaStream extends MediaStream {
     const videoTracks = stream.getVideoTracks()
     const audioTracks = stream.getAudioTracks()
     return {
-      videoStream: videoTracks.length > 0 && new MediaStream(videoTracks),
-      audioStream: audioTracks.length > 0 && new MediaStream(audioTracks)
+      videoStream: videoTracks.length > 0 ? new MediaStream(videoTracks) : undefined,
+      audioStream: audioTracks.length > 0 ? new MediaStream(audioTracks) : undefined
     }
   }
 

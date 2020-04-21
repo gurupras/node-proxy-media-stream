@@ -113,11 +113,19 @@ describe('ProxyMediaStream', () => {
     expect(stream.hasAudioTrack).toBe(false)
   })
 
-  test('splitStream() properly splits video and audio tracks', async () => {
-    const stream = new FakeMediaStream(null, { numVideoTracks: 5, numAudioTracks: 5 })
-    const { videoStream, audioStream } = ProxyMediaStream.splitStream(stream)
-    expect(videoStream.getTracks()).toIncludeSameMembers(stream.getVideoTracks())
-    expect(audioStream.getTracks()).toIncludeSameMembers(stream.getAudioTracks())
+  describe('splitStream', () => {
+    test('Properly splits video and audio tracks', async () => {
+      const stream = new FakeMediaStream(null, { numVideoTracks: 5, numAudioTracks: 5 })
+      const { videoStream, audioStream } = ProxyMediaStream.splitStream(stream)
+      expect(videoStream.getTracks()).toIncludeSameMembers(stream.getVideoTracks())
+      expect(audioStream.getTracks()).toIncludeSameMembers(stream.getAudioTracks())
+    })
+    test('Returns undefined if no tracks are available', async () => {
+      const stream = new FakeMediaStream(null, { numVideoTracks: 0, numAudioTracks: 0 })
+      const { videoStream, audioStream } = ProxyMediaStream.splitStream(stream)
+      expect(videoStream).toBeUndefined()
+      expect(audioStream).toBeUndefined()
+    })
   })
 
   describe('getFilteredTracks', () => {
