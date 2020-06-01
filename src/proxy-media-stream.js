@@ -48,6 +48,7 @@ class ProxyMediaStream extends MediaStream {
     map.set(track, track.kind)
     this[key] = true
     super.addTrack(track)
+    this.emit('updated')
 
     track.addEventListener('ended', () => {
       this.emit('ended', track)
@@ -72,6 +73,7 @@ class ProxyMediaStream extends MediaStream {
     }
     map.delete(track)
     this[key] = map.size > 0
+    this.emit('updated')
     super.removeTrack(track)
   }
 

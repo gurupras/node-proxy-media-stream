@@ -72,30 +72,36 @@ describe('ProxyMediaStream', () => {
     track.dispatchEvent({ type: 'ended' })
     await expect(promise).resolves.toEqual(track)
   })
-  test('Properly updates hasVideoTrack', () => {
+  test('Properly updates hasVideoTrack', async () => {
     expect(stream.hasVideoTrack).toBe(false)
     const track = new FakeMediaTrack({ kind: 'video' })
     stream.addTrack(track)
     expect(stream.hasVideoTrack).toBe(true)
     expect(stream.videoTracks.size).toEqual(1)
 
+    const promise = testForEvent(stream, 'updated')
     // Now, remove the track and check again
     stream.removeTrack(track)
     expect(stream.hasVideoTrack).toBe(false)
     expect(stream.videoTracks.size).toEqual(0)
+    // Expect event to be emitted
+    await expect(promise).toResolve()
   })
 
-  test('Properly updates hasAudioTrack', () => {
+  test('Properly updates hasAudioTrack', async () => {
     expect(stream.hasAudioTrack).toBe(false)
     const track = new FakeMediaTrack({ kind: 'audio' })
     stream.addTrack(track)
     expect(stream.hasAudioTrack).toBe(true)
     expect(stream.audioTracks.size).toEqual(1)
 
+    const promise = testForEvent(stream, 'updated')
     // Now, remove the track and check again
     stream.removeTrack(track)
     expect(stream.hasAudioTrack).toBe(false)
     expect(stream.audioTracks.size).toEqual(0)
+    // Expect event to be emitted
+    await expect(promise).toResolve()
   })
 
   test('Able to handle multiple tracks of the same kind', () => {
