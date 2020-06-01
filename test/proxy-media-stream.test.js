@@ -1,3 +1,8 @@
+import fs from 'fs'
+import path from 'path'
+import deepmerge from 'deepmerge'
+import puppeteer from 'puppeteer'
+import webpack from 'webpack'
 import { FakeMediaTrack, FakeMediaStream, testForEvent } from '@gurupras/test-helpers'
 import ProxyMediaStream from '../index'
 
@@ -154,5 +159,86 @@ describe('ProxyMediaStream', () => {
 
       expect(filteredTracks).toIncludeSameMembers(newTracks)
     })
+  })
+
+  describe.only('Browser tests', () => {
+    let browser
+    let page
+    let browserScript
+    beforeAll(async () => {
+      await new Promise((resolve, reject) => {
+        webpack({
+          entry: path.join(__dirname, '..', 'index.js'),
+          output: {
+            path: '/tmp',
+            filename: '__browser__proxy-media-stream.js',
+            library: 'ProxyMediaStream',
+            libraryTarget: 'umd',
+            globalObject: 'window'
+          }
+        }, (err, stats) => {
+          if (err) {
+            return reject(err)
+          }
+          if (stats.hasErrors()) {
+            return reject(new Error(stats.compilation.errors.join('\n')))
+          }
+          resolve()
+        })
+      })
+      const scriptPath = path.join('/tmp', '__browser__proxy-media-stream.js')
+      browserScript = fs.readFileSync(scriptPath, 'utf8')
+      // fs.unlinkSync(scriptPath)
+
+      browser = await puppeteer.launch({
+        headless: false,
+        args: [
+          '--allow-file-access-from-files',
+          '--disable-translate',
+          '--use-fake-ui-for-media-stream',
+          '--use-fake-device-for-media-stream',
+          '--use-file-for-fake-video-capture=./fake-stream.mjpeg',
+          '--use-file-for-fake-audio-capture=./fake-stream.wav',
+          '--mute-audio'
+        ]
+      })
+      page = await browser.newPage()
+      await page.goto('https://google.com')
+      await page.addScriptTag({
+        content: browserScript
+      })
+    })
+
+    afterAll(async () => {
+      await browser.close()
+    })
+
+    async function setupUserMedia (opts = {}) {
+      const defaults = { audio: true, video: true }
+      const finalOpts = deepmerge(defaults, opts)
+      return page.evaluate((opts) => {
+        window.stream = navigator.mediaDevices.getUserMedia(opts)
+      }, finalOpts)
+    }
+
+    test('Check if ProxyMediaStream is available in the browser', async () => {
+      await expect(page.evaluate(() => !!window.ProxyMediaStream)).resolves.toBe(true)
+    })
+    test('Adding a video track to the underlying stream updates ProxyMediaStream\'s \'hasVideoTrack\' property', async () => {
+      await setupUserMedia({ video: false })
+      const result = await page.evaluate(async () => {
+        debugger
+        if (!window.stream) {
+          throw new Error('No window.stream found')
+        }
+        const { stream } = window
+        const proxyStream = new ProxyMediaStream(stream)
+        // // Only has audio track. Now, get the video track
+        // const videoStream = await navigator.getUserMedia({ video: true, audio: false })
+        // stream.addTrack(videoStream.getTracks()[0])
+        // return proxyStream.hasVideoTrack
+      })
+      expect(result).toBe(true)
+    }, 60000)
   })
 })
