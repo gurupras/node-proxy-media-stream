@@ -1,2 +1,2 @@
-const ProxyMediaStream = require('./src/proxy-media-stream')
-module.exports = ProxyMediaStream
+import ProxyMediaStream from './src/proxy-media-stream.js'
+export default ProxyMediaStream

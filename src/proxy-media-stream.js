@@ -1,4 +1,4 @@
-const Emittery = require('emittery')
+import Emittery from 'emittery'
 
 class ProxyMediaStream extends MediaStream {
   constructor (arg = []) {
@@ -93,4 +93,4 @@ class ProxyMediaStream extends MediaStream {
   }
 }
 
-module.exports = ProxyMediaStream
+export default ProxyMediaStream
