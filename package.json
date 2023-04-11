@@ -1,6 +1,6 @@
 {
   "name": "@gurupras/proxy-media-stream",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "MediaStream wrapper that has an EventEmitter API",
   "type": "module",
   "main": "dist/proxy-media-stream.cjs",
